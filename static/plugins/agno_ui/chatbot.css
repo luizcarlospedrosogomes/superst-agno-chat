@@ -1,0 +1,43 @@
+/* chatbot.css */
+:host {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+button {
+  padding: 12px 20px;
+  background-color: #1FA8C9;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.chatbox {
+  margin-top: 10px;
+  width: 300px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  resize: none;
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.submit {
+  margin-top: 10px;
+  background-color: #28a745;
+}

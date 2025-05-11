@@ -1,0 +1,50 @@
+.env
+venv
+venv310
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos de log
+*.log
+
+# Distribuição
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Arquivos temporários
+*.tmp
+*.swp
+*.bak
+
+# Configurações locais
+*.env
+.env.*
+
+# Cache de ferramentas
+.pytest_cache/
+.coverage
+.tox/
+.mypy_cache/
+.dmypy.json
+.pyre/
