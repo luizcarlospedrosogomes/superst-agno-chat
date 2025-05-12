@@ -40,7 +40,7 @@ class DatabaseSelector extends LitElement {
 
   async _fetchDatabases() {
     try {
-      const res = await fetch('/agno/databases');
+      const res = await fetch('/agno/databases',{ credentials: "include" });
       const data = await res.json();
       this.databases = data.result || [];
       this.selected = this.databases[0] || '';

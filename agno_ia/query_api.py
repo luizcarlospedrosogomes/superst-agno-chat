@@ -4,21 +4,21 @@ from agno.agent import Agent
 from agno.models.google import Gemini
 from superset.extensions import db
 from superset.models.core import Database
-from agno.tools.postgres import PostgresTools
-
+from .tools.custom_postgres import CustomPostgresTools
+from flask_appbuilder.security.decorators import protect, has_access, has_access_api
+from flask_appbuilder import permission_name
 class QueryApi(BaseApi):
-
     route_base = "/agno"
 
-    @expose("/query")
-    #@protect()
+    @expose("/query")   
+    @has_access_api 
     def query(self):
         user_question = request.args.get("question")
         database_name = request.args.get("database")
 
         if not user_question or not database_name:
             return self.response(400, message="Campos 'question' e 'database' são obrigatórios.")
-        print(database_name)
+        
         db_obj = self.get_database_by_name(database_name)
         if not db_obj:
             return self.response(404, message=f"Banco '{database_name}' não encontrado.")
@@ -28,9 +28,15 @@ class QueryApi(BaseApi):
 
             sql_agent = Agent(
                 name="SQL Helper Agent",
-                role="Você é um especialista em SQL e dados.",
+                role=(
+                    "Você é um especialista em bancos de dados. "
+                    "Quando o usuário fizer perguntas sobre estrutura ou conteúdo do banco, "
+                    "você deve usar a ferramenta 'postgres_tools' para executar consultas e responder."
+                    "Você não deve gerar queries que modifique o banco ou o seu conteúdo"
+                    "Sempre que um artefato do com banco começar com o nome 'views*' se trata de uma view"
+                ),
                 tools=[tool],
-                model=Gemini(id="gemini-2.0-flash")  # ou outro modelo
+                model=Gemini(id="gemini-2.0-flash")
             )
 
             result = sql_agent.run(user_question)
@@ -49,10 +55,12 @@ class QueryApi(BaseApi):
         import sqlalchemy.engine.url as sa_url
         parsed = sa_url.make_url(uri)
         print(db_obj, db_obj.password, parsed.username, parsed.host, parsed.database)
-        return PostgresTools(
+        return CustomPostgresTools(
             db_name=parsed.database,
             user=parsed.username,
             password=db_obj.password,
             host=parsed.host,
             port=str(parsed.port or 5432)
         )
+    
+    

@@ -29,6 +29,8 @@ ADDITIONAL_STATIC_IMPORTS = [
     'teste.js'
 ]
 
+FAB_API_ALLOW_BROWSER_LOGIN = True
+
 def mutate_flask_app(app):
     @app.route("/static/plugins/<path:filename>")
     def serve_custom_static(filename):

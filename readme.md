@@ -14,3 +14,9 @@
 - export SUPERSET_CONFIG_PATH=$(pwd)/superset_agno/superset_config.py
 # exit localhost virtual env
 - deactivate
+
+
+# security
+- superset db upgrade
+- superset init
+- add role can list databases on databaseListApi
