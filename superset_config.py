@@ -18,13 +18,6 @@ FEATURE_FLAGS = {
     "ENABLE_CUSTOM_PLUGINS": True,
 }
 
-DASHBOARD_COMPONENTS = {
-    "ChatWidget": {
-        "type": "react",
-        "entry": "ChatWidget.jsx",
-    },
-}
-
 ADDITIONAL_STATIC_IMPORTS = [
     'teste.js'
 ]

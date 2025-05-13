@@ -2,130 +2,65 @@ import { LitElement, html, css } from 'https://unpkg.com/lit@2.8.0/index.js?modu
 import { unsafeHTML } from 'https://unpkg.com/lit@2.8.0/directives/unsafe-html.js?module';
 import { marked } from 'https://cdn.jsdelivr.net/npm/marked@10.0.0/lib/marked.esm.js';
 import './database-selector.js';
-
-class ChatbotFloatingButton extends LitElement {
-  static styles = css`
-    :host {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column-reverse;
-      width: 320px;
-    }
-
-    button {
-      padding: 12px 20px;
-      background-color: #1FA8C9;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .chatbox {
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        width: 100%;
-        min-width: 250px;
-        min-height: 200px;
-        max-height: 80vh;
-        resize: both;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        }
-
-    .messages {
-      flex-grow: 1;
-      overflow-y: auto;
-      margin-bottom: 10px;
-    }
-
-    .messages .user {
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-
-    .messages .bot {
-      margin-bottom: 12px;
-    }
-
-    .textarea-container {
-      margin-top: auto;
-    }
-
-    textarea {
-      width: 100%;
-      height: 80px;
-      resize: none;
-      font-size: 14px;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .submit {
-      margin-top: 10px;
-      background-color: #28a745;
-    }
-
-    .markdown-content {
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .markdown-content pre {
-      background: #f4f4f4;
-      padding: 8px;
-      border-radius: 6px;
-      overflow-x: auto;
-    }
-
-    .markdown-content code {
-      background: #f0f0f0;
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-  `;
-
+import './model-selector.js'; 
+import { chatbotStyles } from './style.js'
+class ChatbotFloatingPanel extends LitElement {
   static properties = {
-    showChatbox: { type: Boolean },
+    showChat: { type: Boolean },
     message: { type: String },
     loading: { type: Boolean },
-    messages: { type: Array }
+    messages: { type: Array },
+    selectedDatabase: { type: Object },
+    showModelSelector: { type: Boolean }, // Para exibir o selector de modelos
+    selectedModel: { type: String }, 
   };
 
   constructor() {
     super();
-    this.showChatbox = false;
+    this.showChat = false;
     this.message = '';
     this.loading = false;
     this.messages = [];
-    this.selectedDatabase = ''
+    this.selectedDatabase = {};
+    this.showModelSelector = true; 
+    this.selectedModel = '';
+    
   }
+
+  static styles = chatbotStyles;
 
   render() {
     return html`
-      <button @click=${this.toggleChatbox}>🤖 Chatbot</button>
-      ${this.showChatbox ? html`
-        <div class="chatbox">
-          <database-selector @database-selected=${e => this.selectedDatabase = e.detail}></database-selector>
+      <button class="floating-button" @click=${() => this.showChat = !this.showChat}>🤖 Chatbot</button>
+
+      ${this.showChat ? html`
+        <div class="chat-panel">
+          <div class="resize-handle" @mousedown=${this.startResize}></div>
+          <div class="header">
+           <span>Data Bot</span>
+           <div >
+            <svg @click=${this.toggleModelSelector} class="gear-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15.4l2.6 1.6a9.7 9.7 0 0 0 0-4.4l-2.6 1.6M4.6 8.6L2 7a9.7 9.7 0 0 0 0 4.4l2.6-1.6M12 1v4M12 19v4M4.2 4.2l2.8 2.8M16.6 16.6l2.8 2.8M1 12h4M19 12h4M4.2 19.8l2.8-2.8M16.6 7.4l2.8-2.8"></path>
+              </svg>
+               ${this.showModelSelector ? html`
+                  <model-selector @model-selected=${this.onModelSelected}></model-selector>
+              ` : ''} 
+            </div>
+          </div>
+          <database-selector  @database-selected=${e => this.selectedDatabase = e.detail}></database-selector>
+
           <div class="messages">
             ${this.messages.map(msg => html`
               <div class=${msg.user ? 'user' : 'bot'}>
-                <div class="markdown-content">
-                  ${unsafeHTML(marked.parse(msg.text))}
-                </div>
+                ${unsafeHTML(marked.parse(msg.text))}
               </div>
+              
+              <span style=${msg.user ? 'display: none;' : 'font-size: 8px; color: #888;'}>${this.selectedModel}</span>
+
             `)}
           </div>
+
           <div class="textarea-container">
             <textarea
               .value=${this.message}
@@ -133,49 +68,75 @@ class ChatbotFloatingButton extends LitElement {
               placeholder="Digite sua pergunta..."
             ></textarea>
             <button class="submit" @click=${this.sendMessage} ?disabled=${this.loading}>
-              ${this.loading ? 'Enviando...' : 'Enviar'}
+              ${this.loading ? '...' : 'Enviar'}
             </button>
           </div>
         </div>
+            
       ` : ''}
     `;
   }
 
-  toggleChatbox() {
-    this.showChatbox = !this.showChatbox;
-  }
-
   async sendMessage() {
-    const trimmed = this.message.trim();
-    if (!trimmed) return;
+    const text = this.message.trim();
+    if (!text) return;
 
     this.loading = true;
-    this.messages = [...this.messages, { user: true, text: trimmed }];
+    this.messages = [...this.messages, { user: true, text }];
     this.message = '';
 
     try {
-      const res = await fetch(`/agno/query?question=${encodeURIComponent(trimmed)}&database=${this.selectedDatabase.name}`, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
+      const res = await fetch(`/agno/query?question=${encodeURIComponent(text)}&database=${this.selectedDatabase?.name || ''}`);
       const data = await res.json();
-      const botReply = data?.result || 'Nenhuma resposta.';
-      this.messages = [...this.messages, { user: false, text: botReply }];
-    } catch (err) {
+      this.messages = [...this.messages, { user: false, text: data?.result || 'Nenhuma resposta.' }];
+    } catch {
       this.messages = [...this.messages, { user: false, text: 'Erro ao se comunicar com o servidor.' }];
     } finally {
       this.loading = false;
     }
   }
+
+
+  toggleModelSelector() {
+    this.showModelSelector = !this.showModelSelector;
+  }
+
+  onModelSelected(e) {
+    this.selectedModel = e.detail;
+    this.showModelSelector = false;
+  } 
+
+  startResize(e) {
+    const chatPanel = this.shadowRoot.querySelector('.chat-panel');
+    const startWidth = chatPanel.offsetWidth;
+    const startHeight = chatPanel.offsetHeight;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const onMouseMove = (moveEvent) => {
+      const width = startWidth + startX - moveEvent.clientX;
+      const height = startHeight + startY - moveEvent.clientY;
+
+      chatPanel.style.width = `${width}px`;
+      chatPanel.style.height = `${height}px`;
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
 }
 
-customElements.define('chatbot-floating-button', ChatbotFloatingButton);
+customElements.define('chatbot-floating-panel', ChatbotFloatingPanel);
+
 
 function mountLitButton() {
   if (!document.body) return setTimeout(mountLitButton, 300);
-  const el = document.createElement("chatbot-floating-button");
+  const el = document.createElement("chatbot-floating-panel");
   document.body.appendChild(el);
 }
-
 mountLitButton();
